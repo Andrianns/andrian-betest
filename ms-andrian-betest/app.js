@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 const authentication = require('./src/middleware/authentication');
 
 app.get('/', (req, res) => {
-  res.status(200).send('hi'); // You can customize this message
+  res.status(200).send('hi');
 });
 app.post('/generate-token', Controller.generateToken);
 app.use(authentication);
