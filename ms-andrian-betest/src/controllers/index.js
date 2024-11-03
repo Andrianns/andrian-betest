@@ -51,7 +51,6 @@ class Controller {
         }
         await redis.set(userKey, JSON.stringify(user), 'EX', 3600);
 
-        // User found, return the user data
         res.status(200).json({ data: user });
       } catch (err) {
         console.log(err);
@@ -83,6 +82,7 @@ class Controller {
           _id: result.insertedId,
           ...newUser,
         };
+        await redis.del('app:users');
         return res
           .status(201)
           .json({ message: 'User  created', data: createdUser });
@@ -126,6 +126,13 @@ class Controller {
         .collection('users')
         .updateOne({ _id: new ObjectId(userId) }, { $set: req.body });
 
+      await redis.del('app:users');
+      await redis.del(
+        `app:user-${JSON.stringify({
+          accountNumber: accountNumber,
+          userName: userName,
+        })}`
+      );
       res
         .status(200)
         .json({ message: 'User  updated successfully', user: user });
@@ -155,6 +162,14 @@ class Controller {
       const result = await db
         .collection('users')
         .deleteOne({ _id: new ObjectId(userId) });
+
+      await redis.del('app:users');
+      await redis.del(
+        `app:user-${JSON.stringify({
+          accountNumber: user.accountNumber,
+          userName: user.userName,
+        })}`
+      );
 
       res
         .status(200)
