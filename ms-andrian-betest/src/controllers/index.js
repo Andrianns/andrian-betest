@@ -3,6 +3,7 @@ const { getDB } = require('../internal/db');
 const { ObjectId } = require('mongodb');
 const { createToken } = require('../helper/jwt');
 const redis = require('../helper/redis');
+const User = require('../models/userModel');
 
 class Controller {
   static async findAllUser(req, res) {
@@ -69,23 +70,19 @@ class Controller {
       return res.status(400).json({ error: 'All fields are required' });
     }
     try {
-      const newUser = {
+      const newUser = new User({
         userName,
         accountNumber,
         emailAddress,
         identityNumber,
-      };
+      });
       const result = await user.insertOne(newUser);
 
       if (result.insertedId) {
-        const createdUser = {
-          _id: result.insertedId,
-          ...newUser,
-        };
         await redis.del('app:users');
         return res
           .status(201)
-          .json({ message: 'User  created', data: createdUser });
+          .json({ message: 'User  created', data: newUser });
       } else {
         return res.status(500).json({ error: 'Failed to create user' });
       }
